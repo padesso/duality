@@ -61,9 +61,14 @@ namespace Duality
 			/// <summary>
 			/// Duality runs in the DualityEditor
 			/// </summary>
-			Editor
+			Editor,
+			/// <summary>
+			/// Duality runs as a headless server
+			/// </summary>
+			Server
 		}
 
+		public const string CmdArgServer	= "server";
 		public const string CmdArgDebug     = "debug";
 		public const string CmdArgEditor    = "editor";
 		public const string CmdArgProfiling = "profile";
@@ -80,6 +85,7 @@ namespace Duality
 		private static ISystemBackend          systemBack         = null;
 		private static IGraphicsBackend        graphicsBack       = null;
 		private static IAudioBackend           audioBack          = null;
+		private static INetworkingBackend	   networkingBack	  = null;
 		private static Vector2                 targetResolution   = Vector2.Zero;
 		private static MouseInput              mouse              = new MouseInput();
 		private static KeyboardInput           keyboard           = new KeyboardInput();
@@ -171,6 +177,13 @@ namespace Duality
 		public static IAudioBackend AudioBackend
 		{
 			get { return audioBack; }
+		}
+		/// <summary>
+		/// [GET] The networking backend that is used by Duality. Don't use this unless you know exactly what you're doing.
+		/// </summary>
+		public static INetworkingBackend NetworkingBackend
+		{
+			get { return networkingBack; }
 		}
 		/// <summary>
 		/// [GET / SET] The size of the current rendering surface (full screen, a single window, etc.) in pixels. Setting this will not actually change
@@ -396,12 +409,18 @@ namespace Duality
 			OnAppDataChanged();
 			OnUserDataChanged();
 
-			// Initialize the graphics backend
-			InitBackend(out graphicsBack);
+			//Initialize the networking backend for UDP based networking
+			InitBackend(out networkingBack);
 
-			// Initialize the audio backend
-			InitBackend(out audioBack);
-			sound = new SoundDevice();
+			// Initialize the graphics and audio backends if we're not in server mode
+			if (environment != ExecutionEnvironment.Server)
+			{
+				InitBackend(out graphicsBack);
+
+				// Initialize the audio backend
+				InitBackend(out audioBack);
+				sound = new SoundDevice();
+			}
 
 			// Initialize all core plugins, this may allocate Resources or establish references between plugins
 			pluginManager.InitPlugins();
@@ -750,6 +769,7 @@ namespace Duality
 			gamepads.Update();
 		}
 
+		//TODO: figure out how to construct the networking backend
 		internal static void InitBackend<T>(out T target, Func<Type,IEnumerable<TypeInfo>> typeFinder = null) where T : class, IDualityBackend
 		{
 			if (typeFinder == null) typeFinder = GetAvailDualityTypes;

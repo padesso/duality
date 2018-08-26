@@ -22,7 +22,8 @@ namespace Duality.Launcher
 			bool isDebugging = System.Diagnostics.Debugger.IsAttached || args.Contains(DualityApp.CmdArgDebug);
 			bool isRunFromEditor = args.Contains(DualityApp.CmdArgEditor);
 			bool isProfiling = args.Contains(DualityApp.CmdArgProfiling);
-			if (isDebugging || isRunFromEditor) ShowConsole();
+			bool isServer = args.Contains(DualityApp.CmdArgServer);
+			if (isDebugging || isRunFromEditor || isServer) ShowConsole();
 			
 			// Set up console logging
 			Log.AddGlobalOutput(new ConsoleLogOutput());
@@ -48,37 +49,47 @@ namespace Duality.Launcher
 			// Write initial log message before actually booting Duality
 			Log.Core.Write("Running DualityLauncher with flags: {1}{0}", 
 				Environment.NewLine,
-				new[] { isDebugging ? "Debugging" : null, isProfiling ? "Profiling" : null, isRunFromEditor ? "RunFromEditor" : null }.NotNull().ToString(", "));
+				new[] { isServer ? "Server" : null, isDebugging ? "Debugging" : null, isProfiling ? "Profiling" : null, isRunFromEditor ? "RunFromEditor" : null }.NotNull().ToString(", "));
 
-			// Initialize the Duality core
-			DualityApp.Init(
+			if (isServer) //Fire up Duality in server mode with no graphics or audio but include networking
+			{
+				DualityApp.Init(
+				DualityApp.ExecutionEnvironment.Server,
+				DualityApp.ExecutionContext.Game,
+				new DefaultPluginLoader(),
+				args);
+			}
+			else// Initialize the Duality core
+			{
+				DualityApp.Init(
 				DualityApp.ExecutionEnvironment.Launcher,
 				DualityApp.ExecutionContext.Game,
 				new DefaultPluginLoader(),
 				args);
-			
-			// Open up a new window
-			WindowOptions options = new WindowOptions
-			{
-				Width = DualityApp.UserData.GfxWidth,
-				Height = DualityApp.UserData.GfxHeight,
-				ScreenMode = isDebugging ? ScreenMode.Window : DualityApp.UserData.GfxMode,
-				RefreshMode = (isDebugging || isProfiling) ? RefreshMode.NoSync : DualityApp.UserData.RefreshMode,
-				Title = DualityApp.AppData.AppName,
-				SystemCursorVisible = isDebugging || DualityApp.UserData.SystemCursorVisible
-			};
-			using (INativeWindow window = DualityApp.OpenWindow(options))
-			{
-				// Load the starting Scene
-				Scene.SwitchTo(DualityApp.AppData.StartScene);
 
-				// Enter the applications update / render loop
-				window.Run();
+				// Open up a new window
+				WindowOptions options = new WindowOptions
+				{
+					Width = DualityApp.UserData.GfxWidth,
+					Height = DualityApp.UserData.GfxHeight,
+					ScreenMode = isDebugging ? ScreenMode.Window : DualityApp.UserData.GfxMode,
+					RefreshMode = (isDebugging || isProfiling) ? RefreshMode.NoSync : DualityApp.UserData.RefreshMode,
+					Title = DualityApp.AppData.AppName,
+					SystemCursorVisible = isDebugging || DualityApp.UserData.SystemCursorVisible
+				};
+				using (INativeWindow window = DualityApp.OpenWindow(options))
+				{
+					// Load the starting Scene
+					Scene.SwitchTo(DualityApp.AppData.StartScene);
 
-				// Shut down the Duality core
-				DualityApp.Terminate();
+					// Enter the applications update / render loop
+					window.Run();
+
+					// Shut down the Duality core
+					DualityApp.Terminate();
+				}
 			}
-			
+
 			// Clean up the log file
 			if (logfileWriter != null)
 			{
