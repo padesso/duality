@@ -100,6 +100,7 @@
     <Compile Include="Cloning\Surrogates\HashSetSurrogate.cs" />
     <Compile Include="Cloning\Surrogates\RegexSurrogate.cs" />
     <Compile Include="Components\Diagnostics\NetworkStatsRenderer.cs" />
+    <Compile Include="Components\ICmpInterfaces\ICmpNetworkable.cs" />
     <Compile Include="Components\Networking\NetworkingComponent.cs" />
     <Compile Include="Components\Other\ComponentExecutionOrder.cs" />
     <Compile Include="Components\Other\ComponentRequirementMap.cs" />
