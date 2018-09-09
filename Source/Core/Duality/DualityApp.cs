@@ -65,10 +65,10 @@ namespace Duality
 			/// <summary>
 			/// Duality runs as a headless server
 			/// </summary>
-			Server
+			DedicatedServer
 		}
 
-		public const string CmdArgServer	= "server";
+		public const string CmdArgServer	= "dedicated_server";
 		public const string CmdArgDebug     = "debug";
 		public const string CmdArgEditor    = "editor";
 		public const string CmdArgProfiling = "profile";
@@ -409,11 +409,11 @@ namespace Duality
 			OnAppDataChanged();
 			OnUserDataChanged();
 
-			//Initialize the networking backend for UDP based networking
-			InitBackend(out networkingBack);
+			//Initialize the networking backend
+			//InitBackend(out networkingBack);
 
 			// Initialize the graphics and audio backends if we're not in server mode
-			if (environment != ExecutionEnvironment.Server)
+			if (environment != ExecutionEnvironment.DedicatedServer)
 			{
 				InitBackend(out graphicsBack);
 

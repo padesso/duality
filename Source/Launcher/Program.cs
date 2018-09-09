@@ -49,12 +49,12 @@ namespace Duality.Launcher
 			// Write initial log message before actually booting Duality
 			Log.Core.Write("Running DualityLauncher with flags: {1}{0}", 
 				Environment.NewLine,
-				new[] { isServer ? "Server" : null, isDebugging ? "Debugging" : null, isProfiling ? "Profiling" : null, isRunFromEditor ? "RunFromEditor" : null }.NotNull().ToString(", "));
+				new[] { isServer ? "dedicated_server" : null, isDebugging ? "Debugging" : null, isProfiling ? "Profiling" : null, isRunFromEditor ? "RunFromEditor" : null }.NotNull().ToString(", "));
 
 			if (isServer) //Fire up Duality in server mode with no graphics or audio but include networking
 			{
 				DualityApp.Init(
-				DualityApp.ExecutionEnvironment.Server,
+				DualityApp.ExecutionEnvironment.DedicatedServer,
 				DualityApp.ExecutionContext.Game,
 				new DefaultPluginLoader(),
 				args);

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Sockets.Plugin;
+using Sockets.Plugin.Abstractions;
 
 namespace Duality.Backend.Networking
 {
@@ -21,7 +23,7 @@ namespace Duality.Backend.Networking
 		}
 		string IDualityBackend.Name
 		{
-			get { return "UDP Networking Backend"; }
+			get { return "Networking Backend"; }
 		}
 		int IDualityBackend.Priority
 		{
@@ -37,24 +39,31 @@ namespace Duality.Backend.Networking
 			//TESTING: https://github.com/rdavisau/sockets-for-pcl
 			try
 			{
-				int listenPort = 11011;
-				UdpSocketReceiver receiver = new UdpSocketReceiver();
+				int listenPort = 11000;
+				TcpSocketListener listener = new TcpSocketListener();
 
-				receiver.MessageReceived += (sender, args) =>
+				// when we get connections, read byte-by-byte from the socket's read stream
+				listener.ConnectionReceived += (sender, args) =>
 				{
-				// get the remote endpoint details and convert the received data into a string
-				string from = string.Format("{0}:{1}", args.RemoteAddress, args.RemotePort);
-					string data = Encoding.UTF8.GetString(args.ByteData, 0, args.ByteData.Length);
+					ITcpSocketClient client = args.SocketClient;
 
-					Log.Core.Write("{0} - {1}", from, data);
+					int bytesRead = -1;
+					byte[] buf = new byte[1];
+
+					while (bytesRead != 0)
+					{
+						bytesRead = args.SocketClient.ReadStream.Read(buf, 0, 1);
+						if (bytesRead > 0)
+							Debug.WriteLine(buf[0]);
+					}
 				};
 
-				// listen for udp traffic on listenPort
-				receiver.StartListeningAsync(listenPort);
+				// bind to the listen port across all interfaces
+				listener.StartListeningAsync(listenPort);
 			}
 			catch(Exception ex)
 			{
-				Log.Core.WriteError("Error creating UDP Server: " + ex.Message);
+				Log.Core.WriteError("Error creating TCP Server: " + ex.Message);
 			}
 
 			Log.Core.WriteWarning("NetworkingBackend initialized.");

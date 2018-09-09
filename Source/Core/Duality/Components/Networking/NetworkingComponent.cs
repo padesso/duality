@@ -24,7 +24,7 @@ namespace Duality.Components.Networking
 				}
 				catch (Exception ex)
 				{
-					Log.Core.WriteError("Error creating UDP Server: " + ex.Message);
+					Log.Core.WriteError("Error creating Server: " + ex.Message);
 				}
 			}
 		}
